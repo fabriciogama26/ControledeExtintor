@@ -6,6 +6,9 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.provider.BaseColumns;
 
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 public class DbDados extends SQLiteOpenHelper {
 
     private static final String DATABASE_NAME = "dbextintores.db";
@@ -23,7 +26,8 @@ public class DbDados extends SQLiteOpenHelper {
                 + QrCodeEntry.COLUMN_QRCODE_CLASS + " TEXT NOT NULL, "
                 + QrCodeEntry.COLUMN_QRCODE_SETOR + " TEXT NOT NULL, "
                 + QrCodeEntry.COLUMN_QRCODE_DATE_TIME + " TEXT NOT NULL, "
-                + QrCodeEntry.COLUMN_QRCODE_DATE_TIME_2 + " TEXT NOT NULL);";
+                + QrCodeEntry.COLUMN_QRCODE_DATE_TIME_2 + " TEXT NOT NULL);"
+                + QrCodeEntry.COLUMN_QRCODE_DATE_TIME_3 + " TEXT NOT NULL);";;
 
         db.execSQL(SQL_CREATE_QRCODE_TABLE);
     }
@@ -45,11 +49,18 @@ public class DbDados extends SQLiteOpenHelper {
         contentValues.put(QrCodeEntry.COLUMN_QRCODE_CLASS, qrCodeClass);
         contentValues.put(QrCodeEntry.COLUMN_QRCODE_SETOR, qrCodeSetor);
 
-        // Insira a data atual
+        // Obtenha a data atual em formato de string com o padrão desejado
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        String currentDate = dateFormat.format(new Date());
+
+        // Insira a data de troca
         contentValues.put(QrCodeEntry.COLUMN_QRCODE_DATE_TIME, qrCodeDate);
 
-        // Insira a data de inicio
+        // Insira a data de inspeçao
         contentValues.put(QrCodeEntry.COLUMN_QRCODE_DATE_TIME_2, qrCodeDateNext);
+
+        // Insira a data gerada do qrcode
+        contentValues.put(QrCodeEntry.COLUMN_QRCODE_DATE_TIME_3, currentDate);
 
         db.insert(QrCodeEntry.TABLE_NAME, null, contentValues);
         db.close();
@@ -60,7 +71,9 @@ public class DbDados extends SQLiteOpenHelper {
         public static final String TABLE_NAME = "extintores_table";
         public static final String COLUMN_QRCODE_CLASS = "clase";
         public static final String COLUMN_QRCODE_SETOR = "local";
-        public static final String COLUMN_QRCODE_DATE_TIME = "data_troca";
-        public static final String COLUMN_QRCODE_DATE_TIME_2 = "data_de_inicio";
+        public static final String COLUMN_QRCODE_DATE_TIME = "data_recarga";
+        public static final String COLUMN_QRCODE_DATE_TIME_2 = "data_inspecao";
+        public static final String COLUMN_QRCODE_DATE_TIME_3 = "data_qrcode";
+
     }
 }

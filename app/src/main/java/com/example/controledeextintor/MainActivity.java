@@ -40,13 +40,18 @@ public class MainActivity extends AppCompatActivity {
                 // Abre a Activity de scanner
                 Intent intent = new Intent(MainActivity.this, ScanActivity.class);
                 startActivity(intent);
+
             }
         });
-    }
 
-    // Método para abrir outra atividade
-    public void abrirOutraAtividade() {
-        Intent intent = new Intent(MainActivity.this, ScanActivity.class);
-        startActivity(intent);
+        binding.imageIconRegistre.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // Abre a Activity de scanner
+                Intent intent = new Intent(MainActivity.this, QrcodeActivity.class);
+                startActivity(intent);
+
+            }
+        });
     }
 }
