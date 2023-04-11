@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="setores_array">
+        <item>Master</item>
+        <item>Mecânica</item>
+        <item>Elétrica</item>
+        <item>Extrusão</item>
+        <item>Serralheria</item>
+        <item>Qualidade</item>
+        <item>Logistica/Exp</item>
+        <item>Serviço Gerais</item>
+        <item>Administrativo</item>
+        <item>Acabamento</item>
+        <item>Recuperadora</item>
+    </string-array>
+</resources>

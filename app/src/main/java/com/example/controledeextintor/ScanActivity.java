@@ -9,6 +9,7 @@ import androidx.core.content.ContextCompat;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
+import android.icu.util.Calendar;
 import android.os.Bundle;
 import android.os.Handler;
 import android.widget.Toast;
@@ -18,6 +19,11 @@ import com.budiyev.android.codescanner.CodeScannerView;
 import com.budiyev.android.codescanner.DecodeCallback;
 import com.example.controledeextintor.databinding.ActivityScanBinding;
 import com.google.zxing.Result;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
 
 
 public class ScanActivity extends AppCompatActivity {
@@ -47,6 +53,7 @@ public class ScanActivity extends AppCompatActivity {
         mCodeScanner.setDecodeCallback(new DecodeCallback() {
             @Override
             public void onDecoded(@NonNull final Result result) {
+
                 ScanActivity.this.runOnUiThread(new Runnable() {
                     @Override
                     public void run() {
@@ -54,17 +61,67 @@ public class ScanActivity extends AppCompatActivity {
                         if (text.startsWith("mp_")) { // Verifica se o texto começa com "mp_"
                             // Remove "mp_" da string
                             String cleanText = text.substring(3);
-                            String[] qrData = cleanText.split(";"); // Divide a string em um array com os 4 dados separados por ';'
+                            String[] qrData = cleanText.split(";"); // Divide a string em um array com os 5 dados separados por ';'
 
-                            if (qrData.length == 4) { // Verifica se o array tem exatamente 4 elementos
+                            if (qrData.length == 6) { // Verifica se o array tem exatamente 5 elementos
+
+                                int id = Integer.parseInt(qrData[0]);
                                 // Instancia um objeto DbDados para inserir os dados no banco de dados
                                 DbDados dbHelper = new DbDados(ScanActivity.this);
-                                dbHelper.insertData(qrData[0], qrData[1], qrData[2], qrData[3]); // Insere os 4 dados no banco de dados
 
-                                // Inicie a nova Activity passando a mensagem através do Intent
-                                Intent intent = new Intent(ScanActivity.this, MainActivity.class);
-                                intent.putExtra("mensagem", "Troca do extintor confirmada!");
-                                startActivity(intent);
+                                String datas = dbHelper.buscarDadosPorId(id);
+
+                                if (!datas.isEmpty()) {
+                                    String[] arrayDatas = datas.split(";"); // Divide a string de datas em um array
+
+                                    if (arrayDatas.length == 2) { // Verifica se o array de datas tem exatamente 2 elementos
+
+                                        String DataRecarga = arrayDatas[0];
+                                        String DataInspecao = arrayDatas[1];
+
+                                        // Obtém a data atual
+                                        Calendar calendar = Calendar.getInstance();
+                                        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+                                        String dataAtual = dateFormat.format(calendar.getTime());
+
+                                        // Calcula a diferença em dias entre a data atual e a data de recarga
+                                        long diffRecarga = 0;
+                                        long diffInspecao = 0;
+                                        try {
+                                            Date dateAtual = dateFormat.parse(dataAtual);
+                                            Date dateRecarga = dateFormat.parse(DataRecarga);
+                                            Date dateInspecao = dateFormat.parse(DataInspecao);
+                                            diffInspecao = TimeUnit.DAYS.convert(dateInspecao.getTime() - dateAtual.getTime(), TimeUnit.MILLISECONDS);
+                                            diffRecarga = TimeUnit.DAYS.convert(dateRecarga.getTime() - dateAtual.getTime(), TimeUnit.MILLISECONDS);
+                                        } catch (ParseException e) {
+                                            e.printStackTrace();
+                                        }
+
+                                        // Inicie a nova Activity passando a mensagem através do Intent
+                                        Intent intent = new Intent(ScanActivity.this, MainActivity.class);
+                                        intent.putExtra("mensagem", "Troca do extintor confirmada!" + " " + diffRecarga + " " + diffInspecao);
+                                        startActivity(intent);
+
+                                    } else {
+                                        Toast.makeText(ScanActivity.this, "QR Code inválido", Toast.LENGTH_SHORT).show();
+                                        // Aguarda 3 segundos antes de reiniciar o scanner
+                                        new Handler().postDelayed(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                mCodeScanner.startPreview();
+                                            }
+                                        }, 3000);
+                                    }
+                                } else {
+                                    Toast.makeText(ScanActivity.this, "QR Code inválido", Toast.LENGTH_SHORT).show();
+                                    // Aguarda 3 segundos antes de reiniciar o scanner
+                                    new Handler().postDelayed(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mCodeScanner.startPreview();
+                                        }
+                                    }, 3000);
+                                }
                             } else {
                                 Toast.makeText(ScanActivity.this, "QR Code inválido", Toast.LENGTH_SHORT).show();
                                 // Aguarda 3 segundos antes de reiniciar o scanner
@@ -75,21 +132,13 @@ public class ScanActivity extends AppCompatActivity {
                                     }
                                 }, 3000);
                             }
-                        } else {
-                            Toast.makeText(ScanActivity.this, "QR Code inválido", Toast.LENGTH_SHORT).show();
-                            // Aguarda 3 segundos antes de reiniciar o scanner
-                            new Handler().postDelayed(new Runnable() {
-                                @Override
-                                public void run() {
-                                    mCodeScanner.startPreview();
-                                }
-                            }, 3000);
                         }
                     }
                 });
             }
         });
     }
+
 
     // Inicia a pré-visualização da câmera quando a Activity é retomada
     @Override
