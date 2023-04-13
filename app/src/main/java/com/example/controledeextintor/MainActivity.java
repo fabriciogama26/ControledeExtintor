@@ -59,28 +59,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         binding.imageIconList.setOnClickListener(new View.OnClickListener() {
-
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-                builder.setTitle("Confirmação")
-                        .setMessage("Deseja realmente deletar os dados?")
-                        .setPositiveButton("Sim", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Lógica de tratamento de clique para o menu
-                                // Faça a ação de exclusão aqui
-                                DbDados dbHelper = new DbDados(MainActivity.this);
-                                dbHelper.deletarBancoDados();
-                            }
-                        })
-                        .setNegativeButton("Não", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                // Faça a ação desejada quando o usuário selecionar "Não" ou clicar fora do diálogo
-                            }
-                        })
-                        .show();
+                // Abre a Activity de Lista
+                Intent intent = new Intent(MainActivity.this, ListActivity.class);
+                startActivity(intent);
+
             }
 
         });

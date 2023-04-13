@@ -2,8 +2,8 @@
 <resources>
     <string-array name="setores_array">
         <item>Master</item>
-        <item>Mecânica</item>
-        <item>Elétrica</item>
+        <item>Mecanica</item>
+        <item>Eletrica</item>
         <item>Extrusão</item>
         <item>Serralheria</item>
         <item>Qualidade</item>
