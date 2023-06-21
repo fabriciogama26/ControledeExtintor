@@ -1,31 +1,28 @@
 package com.example.controledeextintor;
 
 import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.Color;
+import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
-import android.view.View;
-import android.widget.Button;
-import android.widget.ImageView;
 import android.widget.Toast;
-
 import com.example.controledeextintor.databinding.ActivityQrcodeBinding;
 import com.google.android.material.snackbar.Snackbar;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.WriterException;
 import com.journeyapps.barcodescanner.BarcodeEncoder;
-
 import java.io.ByteArrayOutputStream;
-import java.util.ArrayList;
 
 
 public class QrcodeActivity extends AppCompatActivity {
     private ActivityQrcodeBinding binding;
+    private String itemQrcode; // Variável para armazenar o item do qrcode
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -47,64 +44,67 @@ public class QrcodeActivity extends AppCompatActivity {
                     .show();
         }
 
-        binding.buttonGerarQr.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                DbDados dbHelper = new DbDados(QrcodeActivity.this);
-                String dados = dbHelper.buscarDados(); // Altere o retorno do método para String
+        binding.buttonGerarQr.setOnClickListener(view -> {
+            try (DbDados dbHelper = new DbDados(QrcodeActivity.this)) {
+                itemQrcode = dbHelper.buscarDados(); // Altere o retorno do método para String
 
                 // Verifica se há dados no resultado da busca
-                if (dados != null && !dados.isEmpty()) { // Verifica se a String não está vazia
+                if (itemQrcode != null && !itemQrcode.isEmpty()) { // Verifica se a String não está vazia
 
-                    // Obtém os dados do primeiro registro (ou do registro desejado)
-                    String dadosSalvos = dados; // Altere para a String obtida no retorno do método
-
-                    String dadosqr = dadosSalvos;
-
+                    Toast.makeText(QrcodeActivity.this, "Dados encontrados", Toast.LENGTH_SHORT).show();
                     // Cria o objeto BarcodeEncoder e gera o QR Code
                     BarcodeEncoder barcodeEncoder = new BarcodeEncoder();
-                    // Tenta gerar o QR Code com o produto informado
+                    // Tenta gerar o QR Code com os dados obtidos
                     try {
-                        Bitmap qrCode = barcodeEncoder.encodeBitmap(dadosqr, BarcodeFormat.QR_CODE, 500, 500);
+                        Bitmap qrCode = barcodeEncoder.encodeBitmap(itemQrcode, BarcodeFormat.QR_CODE, 500, 500);
                         binding.imageViewQRCode.setImageBitmap(qrCode);
                     } catch (WriterException e) {
                         e.printStackTrace();
                     }
                 }
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         });
 
-        binding.buttonShare.setOnClickListener(new View.OnClickListener() {
-
-            @Override
-            public void onClick(View v) {
-
-                if (binding.imageViewQRCode.getDrawable() == null) {
-                    Toast.makeText(QrcodeActivity.this, "Gere o QR Code.", Toast.LENGTH_SHORT).show();
-                    return;
-                }
-                // Obtém o bitmap do ImageView
-                Bitmap qrCode = ((BitmapDrawable) binding.imageViewQRCode.getDrawable()).getBitmap();
-
-                try {
-                    // Cria o intent de compartilhamento
-                    Intent shareIntent = new Intent(Intent.ACTION_SEND);
-                    shareIntent.setType("image/*");
-                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-                    qrCode.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-                    String path = MediaStore.Images.Media.insertImage(QrcodeActivity.this.getContentResolver(), qrCode, "QR Code", null);
-                    Uri imageUri = Uri.parse(path);
-                    shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
-                    startActivity(Intent.createChooser(shareIntent, "Compartilhar Qrcode"));
-
-
-                } catch (Exception e) {
-                    Toast.makeText(QrcodeActivity.this, "Não foi possível compartilhar o QR Code", Toast.LENGTH_SHORT).show();
-                }
-
+        binding.buttonShare.setOnClickListener(view -> {
+            if (binding.imageViewQRCode.getDrawable() == null) {
+                Toast.makeText(QrcodeActivity.this, "Primeiro gere o QR Code.", Toast.LENGTH_SHORT).show();
+                return;
             }
 
+            // Obtém o bitmap do ImageView
+            Bitmap qrCode = ((BitmapDrawable) binding.imageViewQRCode.getDrawable()).getBitmap();
+
+            try {
+                // Cria o intent de compartilhamento
+                Intent shareIntent = new Intent(Intent.ACTION_SEND);
+                shareIntent.setType("text/plain"); // Define o tipo de conteúdo como texto
+
+                // Extrai os dados da string itemQrcode
+                String[] dados = itemQrcode.split(";");
+
+                // Obtém o texto da terceira posição
+                String texto = dados[2];
+
+                // Adicione o texto desejado
+                shareIntent.putExtra(Intent.EXTRA_TEXT, texto);
+
+                // Adicione a imagem ao intent de compartilhamento
+                ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                qrCode.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+                String path = MediaStore.Images.Media.insertImage(QrcodeActivity.this.getContentResolver(), qrCode, "QR Code", null);
+                Uri imageUri = Uri.parse(path);
+                shareIntent.putExtra(Intent.EXTRA_STREAM, imageUri);
+
+                startActivity(Intent.createChooser(shareIntent, "Compartilhar Qrcode"));
+
+                // Inicie a nova Activity passando a mensagem através do Intent
+                Intent intent = new Intent(QrcodeActivity.this, MainActivity.class);
+                startActivity(intent);
+            } catch (Exception e) {
+                Toast.makeText(QrcodeActivity.this, "Não foi possível compartilhar o QR Code", Toast.LENGTH_SHORT).show();
+            }
         });
     }
 }

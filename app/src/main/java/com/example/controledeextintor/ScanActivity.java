@@ -61,9 +61,9 @@ public class ScanActivity extends AppCompatActivity {
                         if (text.startsWith("mp_")) { // Verifica se o texto começa com "mp_"
                             // Remove "mp_" da string
                             String cleanText = text.substring(3);
-                            String[] qrData = cleanText.split(";"); // Divide a string em um array com os 5 dados separados por ';'
+                            String[] qrData = cleanText.split(";"); // Divide a string em um array com os dados separados por ';'
 
-                            if (qrData.length == 6) { // Verifica se o array tem exatamente 5 elementos
+                            if (qrData.length == 8) { // Verifica se o array tem exatamente 8 elementos
 
                                 int id = Integer.parseInt(qrData[0]);
                                 // Instancia um objeto DbDados para inserir os dados no banco de dados
